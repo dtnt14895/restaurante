@@ -1,8 +1,14 @@
 import { Ventas } from './../../models/Ventas';
 import { Component, OnInit } from '@angular/core';
-import { FormGroup } from '@angular/forms';
+import { FormControl, FormGroup } from '@angular/forms';
 import { MessageService } from 'primeng/api';
+import { Clientes } from 'src/app/models/Clientes';
+import { ClientesService } from 'src/app/services/clientes.service';
 import { VentasService } from 'src/app/services/ventas.service';
+import { AutoCompleteCompleteEvent } from 'primeng/autocomplete';
+import { Productos } from 'src/app/models/Productos';
+import { ProductosService } from 'src/app/services/productos.service';
+
 
 @Component({
   selector: 'app-ventas',
@@ -13,16 +19,35 @@ import { VentasService } from 'src/app/services/ventas.service';
 export class VentasComponent implements OnInit {
         ventas:Ventas[] = [];
         venta: Ventas = new Ventas;
+        clientes:Clientes[] = [];
+/*         cliente: Clientes =new Clientes;
+ */
+        productos : Productos[] = [];
+        clientesFiltrados: any[] =[];
+
         ventasDialog = false;
+
         modalEliminacionVenta = false;
         deleteVentasDialog = false;
         operacion: string = '';
         formulario: FormGroup;
+
+        detalleVentas: any[] = []
+
         constructor(
             private _ventasService: VentasService,
-            private _messageService: MessageService
+            private _messageService: MessageService,
+            private _clientesService: ClientesService,
+            private _productosService: ProductosService
         ){
-
+            this.formulario = new FormGroup({
+                fecha  : new FormControl(),
+                total  : new FormControl(),
+                clienteId  : new FormControl(),
+                productoId : new FormControl(),
+                subtotal : new FormControl(),
+                cantidad : new FormControl()
+            })
         }
         ngOnInit(): void {
             this.cargarDatos();
@@ -32,6 +57,8 @@ export class VentasComponent implements OnInit {
             this.operacion = "Nuevo";
             this.ventasDialog = true;
             this.formulario.reset();
+            this.cargarClientes();
+            this.cargarProductos();
         }
 
         cargarDatos(){
@@ -39,10 +66,20 @@ export class VentasComponent implements OnInit {
                 this.ventas = dato
             })
         }
-
+        cargarClientes(){
+            this._clientesService.obtener().subscribe( dato=>{
+                this.clientes = dato
+            })
+        }
+        cargarProductos(){
+            this._productosService.obtener().subscribe( dato=>{
+                this.productos = dato
+            })
+        }
         guardar(){
             this.venta.Fecha = this.formulario.value.fecha;
             this.venta.Total = this.formulario.value.total;
+            this.venta.ClienteId = this.formulario.value.clienteId;
 
             if(this.operacion == "Nuevo"){
                 this._ventasService.guardar(this.venta).subscribe( dato => {
@@ -88,5 +125,22 @@ export class VentasComponent implements OnInit {
                 fecha: venta.fecha,
                 total: venta.total,
             })
+        }
+        clientesFiltro(event: AutoCompleteCompleteEvent){
+            let filtrados : any[] = [];
+            let query = event.query;
+
+            for (let i=0; i < (this.clientes as any[]).length; i++) {
+                let cliente =(this.clientes as any[])[i];
+                if(cliente.nombres.toLowerCase().indexOf(query.toLowerCase()) == 0){
+                    filtrados.push(cliente)
+                }
+            }
+            this.clientesFiltrados=filtrados
+        }
+        agregarDetalle(){
+            this.detalleVentas.push(this.formulario.value)
+            console.log(this.detalleVentas);
+
         }
 }

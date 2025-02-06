@@ -34,6 +34,10 @@ export class VentasComponent implements OnInit {
 
         detalleVentas: any[] = []
 
+        isDisable  : boolean = true;
+        precioProducto : any = 0;
+        subtotal : any = 0;
+
         constructor(
             private _ventasService: VentasService,
             private _messageService: MessageService,
@@ -77,6 +81,7 @@ export class VentasComponent implements OnInit {
             })
         }
         guardar(){
+
             this.venta.Fecha = this.formulario.value.fecha;
             this.venta.Total = this.formulario.value.total;
             this.venta.ClienteId = this.formulario.value.clienteId;
@@ -141,6 +146,18 @@ export class VentasComponent implements OnInit {
         agregarDetalle(){
             this.detalleVentas.push(this.formulario.value)
             console.log(this.detalleVentas);
-
+        }
+        calcularSubtotal(){
+            this.subtotal = this.precioProducto * this.formulario.value.cantidad;
+            this.formulario.value.subtotal = this.subtotal
+            this.formulario.patchValue({subtotal:this.subtotal})
+        }
+        eliminarDetalle(detalleVentas){
+            const index = this.detalleVentas.findIndex(
+                det=>det.id === detalleVentas.id
+            );
+            if(index !== -1){
+                this.detalleVentas.splice(index,1)
+            }
         }
 }

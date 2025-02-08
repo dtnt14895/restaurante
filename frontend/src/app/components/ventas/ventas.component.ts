@@ -18,7 +18,7 @@ import { ProductosService } from 'src/app/services/productos.service';
 })
 export class VentasComponent implements OnInit {
         ventas:Ventas[] = [];
-        venta: Ventas = new Ventas;
+        venta: any;
         clientes:Clientes[] = [];
 /*         cliente: Clientes =new Clientes;
  */
@@ -81,10 +81,18 @@ export class VentasComponent implements OnInit {
             })
         }
         guardar(){
-
-            this.venta.Fecha = this.formulario.value.fecha;
-            this.venta.Total = this.formulario.value.total;
-            this.venta.ClienteId = this.formulario.value.clienteId;
+            this.venta={
+                Fecha:this.formulario.value.fecha,
+                Total:this.calcularTotal(),
+                ClienteId:this.formulario.value.clienteId.clienteId,
+                Detalle:[
+                    {
+                        productoId: this.formulario.value.productoId.productoId,
+                        cantidad: this.formulario.value.cantidad,
+                        subtotal: this.formulario.value.subtotal
+                    }
+                ]
+            }
 
             if(this.operacion == "Nuevo"){
                 this._ventasService.guardar(this.venta).subscribe( dato => {
@@ -100,6 +108,7 @@ export class VentasComponent implements OnInit {
 
             this.ventasDialog = false;
             this.formulario.reset();
+            console.log(this.venta);
         }
 
         ocultar(){
@@ -145,7 +154,6 @@ export class VentasComponent implements OnInit {
         }
         agregarDetalle(){
             this.detalleVentas.push(this.formulario.value)
-            console.log(this.detalleVentas);
         }
         calcularSubtotal(){
             this.subtotal = this.precioProducto * this.formulario.value.cantidad;
@@ -159,5 +167,8 @@ export class VentasComponent implements OnInit {
             if(index !== -1){
                 this.detalleVentas.splice(index,1)
             }
+        }
+        calcularTotal():number{
+            return this.detalleVentas.reduce((total, i)=> total + i.subtotal, 0)
         }
 }
